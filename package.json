@@ -1,0 +1,13 @@
+{
+  "name": "arduino",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "johnny-five": "^1.0.0",
+    "temporal": "^0.7.1"
+  },
+  "scripts": {},
+  "author": "slavikse <gslavikse@gmail.com>",
+  "license": "MIT"
+}
