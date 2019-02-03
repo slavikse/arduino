@@ -1,5 +1,7 @@
 #include <LiquidCrystal.h>
 
+// TODO WIP
+
 LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
 
 int step = 0;
