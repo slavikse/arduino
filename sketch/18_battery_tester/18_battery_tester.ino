@@ -19,7 +19,7 @@ void loop()
     voltage += DIODE_DROP;
   }
 
-  lcd.setCursor(1, 0);
+  lcd.setCursor(0, 1);
   lcd.print(voltage, 2);
   lcd.print(" Volts");
 }
