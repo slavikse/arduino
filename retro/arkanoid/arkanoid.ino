@@ -39,10 +39,26 @@ const byte enemyDrawShift = 2;
 
 void setup()
 {
-  Serial.begin(9600);
+  // Serial.begin(9600);
+  // Serial.print("message");
 
   screenSetup();
   setupStatusBar();
+
+  // Приветственная мелодия.
+  tone(BUZZER_PIN, 1600, 800);
+  delay(100);
+  tone(BUZZER_PIN, 700, 600);
+  delay(80);
+  tone(BUZZER_PIN, 1500, 1000);
+  delay(100);
+  tone(BUZZER_PIN, 700, 600);
+  delay(80);
+  tone(BUZZER_PIN, 1800, 700);
+  delay(60);
+  tone(BUZZER_PIN, 1800, 700);
+  delay(100);
+  tone(BUZZER_PIN, 2000, 1000);
 }
 
 void screenSetup()
@@ -139,13 +155,12 @@ void changeHealth(byte num)
   }
 
   setHealth();
+  tone(BUZZER_PIN, 1000, 100);
 }
 
 void changeScore(byte num)
 {
   score += num;
-  Serial.print(num);
-  Serial.print(score);
 
   // Защита от переполнения.
   if (score >= 99)
@@ -162,8 +177,14 @@ void gameOver()
   lcd.clear();
   lcd.setCursor(4, 0);
   lcd.print("Game Over!");
-  lcd.setCursor(6, 1);
-  lcd.print(">;;;<");
+  lcd.setCursor(7, 1);
+  lcd.print(">_<");
+
+  tone(BUZZER_PIN, 2000, 800);
+  delay(100);
+  tone(BUZZER_PIN, 1500, 1000);
+  delay(100);
+  tone(BUZZER_PIN, 2000, 800);
 
   delay(99999999999);
 }
@@ -185,15 +206,15 @@ void playerShot()
       enemyPosition1 = 0;
     }
 
-    tone(BUZZER_PIN, 6000, 150);
-
     // Первые 4 ячейки служебные.
     // Блокирующий. Scheduler - не работает с UNO. Но оно того стоит. Прерывания??? \oO/
     for (byte i = 4; i < horizontal; i++)
     {
+      tone(BUZZER_PIN, 6000, 50);
+
       lcd.setCursor(i, playerVertical);
       lcd.print("-");
-      delay(80);
+      delay(100);
       lcd.setCursor(i, playerVertical);
       lcd.print(" ");
     }
