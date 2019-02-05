@@ -5,25 +5,37 @@ LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 const byte SHOT_BUTTON_PIN = 10;
 const byte BUZZER_PIN = 6;
 
-const byte PLAYER_TOP_PIN = 9;
-const byte PLAYER_BOTTOM_PIN = 8;
+const byte PLAYER_HEALTH_PIN = 13;
+const byte PLAYER_TOP_PIN = 8;
+const byte PLAYER_BOTTOM_PIN = 9;
 
 // Размеры экрана.
 const byte horizontal = 16;
 const byte vertical = 2;
 
-// 0 - Внизу, 1 - Вверху.
+const byte cycleTime = 200;
+
+// 0 - Вверху, 1 - Внизу.
 byte playerVertical = 0;
 byte score = 0;
 byte health = 3;
 
+// TODO
+const byte shotCost = 0;
+const byte healthCost = 0;
+
 // 0 - значение инвертируется на выводе.
+// Верхний.
+byte enemyPosition0 = 0;
+// Нижний.
 byte enemyPosition1 = 0;
-byte enemyShotPosition1 = 0;
+
+const byte enemyShift0 = 16;
+const byte enemyShift1 = 16;
 
 void setup()
 {
-  // Serial.begin(9600);
+  Serial.begin(9600);
 
   screenSetup();
   setupStatusBar();
@@ -33,11 +45,13 @@ void screenSetup()
 {
   lcd.begin(horizontal, vertical);
 
+  lcd.setCursor(5, 0);
   lcd.print("Hi man!");
-  lcd.setCursor(0, 1);
-  lcd.print("I am a new game!");
 
-  // TODO кнопка старт
+  lcd.setCursor(1, 1);
+  lcd.print("I am ARKANOID!");
+
+  // TODO
   delay(1000);
 
   lcd.clear();
@@ -48,33 +62,138 @@ void setupStatusBar()
   // Вывод строки с набранными баллами.
   lcd.setCursor(0, 0);
   lcd.print("$");
-  lcd.setCursor(1, 0);
-  lcd.print(score);
+  setScore();
 
   // Вывод строки с количеством здоровья.
   lcd.setCursor(0, 1);
   lcd.print("H");
-  lcd.setCursor(1, 1);
-  lcd.print(health);
+  setHealth();
 }
 
 void loop()
 {
+  hasIntersection();
+
   playerShot();
+  playerBuyHealth();
   playerMove();
 
-  clearEnemy();
-  drawEnemy("-");
+  clearEnemies();
+  drawEnemy("*");
   enemyMove();
+}
+
+void setScore()
+{
+  lcd.setCursor(1, 0);
+  lcd.print(score);
+}
+
+void setHealth()
+{
+  lcd.setCursor(1, 1);
+  lcd.print(health);
+}
+
+void hasIntersection()
+{
+  // Будет равен -1, когда достигнет возможного расположения игрока.
+  if (enemyPosition0 - enemyShift0 == -1)
+  {
+    intersection(0);
+  }
+  else if (enemyPosition1 - enemyShift1 == -1)
+  {
+    intersection(1);
+  }
+}
+
+void intersection(byte position)
+{
+  if (playerVertical == position)
+  {
+    changeHealth(-1);
+
+    if (health == 0)
+    {
+      gameOver();
+    }
+  }
+  else
+  {
+    changeScore(+1);
+  }
+}
+
+void changeHealth(byte num)
+{
+  health += num;
+
+  // Защита от переполнения.
+  if (health >= 99)
+  {
+    health = 0;
+  }
+
+  setHealth();
+}
+
+void changeScore(byte num)
+{
+  score += num;
+
+  // Защита от переполнения.
+  if (score >= 99)
+  {
+    score = 0;
+  }
+
+  setScore();
+}
+
+// Перезапуск через кнопку сброса на плате.
+void gameOver()
+{
+  lcd.clear();
+  lcd.setCursor(4, 0);
+  lcd.print("Game Over!");
+  lcd.setCursor(6, 1);
+  lcd.print(">;;;<");
+
+  delay(99999999999);
 }
 
 void playerShot()
 {
   bool keyUp = digitalRead(SHOT_BUTTON_PIN);
 
-  if (!keyUp)
+  if (!keyUp && score >= shotCost)
   {
+    changeScore(-shotCost);
+
+    if (playerVertical == 0)
+    {
+      clearEnemy0();
+      enemyPosition0 = 0;
+    }
+    else if (playerVertical == 1)
+    {
+      clearEnemy1();
+      enemyPosition1 = 0;
+    }
+
     tone(BUZZER_PIN, 3500, 20);
+  }
+}
+
+void playerBuyHealth()
+{
+  bool healthKeyUp = digitalRead(PLAYER_HEALTH_PIN);
+
+  if (!healthKeyUp && score >= healthCost)
+  {
+    changeScore(-healthCost);
+    changeHealth(+1);
   }
 }
 
@@ -99,7 +218,6 @@ void playerMove()
 
 void setPlayerPosition(byte position)
 {
-  // Serial.print(playerVertical);
   playerVertical = position;
   tone(BUZZER_PIN, 2000, 20);
 }
@@ -116,24 +234,41 @@ void clearPlayer()
 void drawPlayer()
 {
   lcd.setCursor(3, playerVertical);
-  lcd.print("E");
+  lcd.print(">");
 }
 
-void clearEnemy()
+// Очищает текущие ячейки, рисует в следующих. 
+void clearEnemies()
 {
-  lcd.setCursor(18 - enemyPosition1, 1);
+  clearEnemy0();
+  clearEnemy1();
+}
+
+void clearEnemy0()
+{
+  lcd.setCursor(19 - enemyPosition0, 0);
+  lcd.print(" ");
+}
+
+void clearEnemy1()
+{
+  lcd.setCursor(19 - enemyPosition1, 1);
   lcd.print(" ");
 }
 
 void drawEnemy(String ch)
 {
-  lcd.setCursor(17 - enemyPosition1, 1);
+  lcd.setCursor(18 - enemyPosition0, 0);
+  lcd.print(ch);
+
+  lcd.setCursor(18 - enemyPosition1, 1);
   lcd.print(ch);
 }
 
 void enemyMove()
 {
-  delay(200);
-  // Слева экрана будет свободно 3 ячейки.
-  enemyPosition1 = (enemyPosition1 + 1) % 15;
+  delay(cycleTime);
+
+  enemyPosition0 = (enemyPosition0 + 1) % enemyShift0;
+  enemyPosition1 = (enemyPosition1 + 1) % enemyShift1;
 }
