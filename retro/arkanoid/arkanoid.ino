@@ -20,9 +20,8 @@ byte playerVertical = 0;
 byte score = 0;
 byte health = 3;
 
-// TODO
-const byte shotCost = 0;
-const byte healthCost = 0;
+const byte shotCost = 1;
+const byte healthCost = 5;
 
 // 0 - значение инвертируется на выводе.
 // Верхний.
@@ -30,8 +29,13 @@ byte enemyPosition0 = 0;
 // Нижний.
 byte enemyPosition1 = 0;
 
-const byte enemyShift0 = 16;
+// Начальные позиции врагов. Смещены, чтобы не следовали в один ряд с первого прохода.
+const byte enemyShift0 = 19;
 const byte enemyShift1 = 16;
+
+// Нужно сохранять разницу: enemyCursorShift == enemyDrawShift + 1.
+const byte enemyCursorShift = 3;
+const byte enemyDrawShift = 2;
 
 void setup()
 {
@@ -51,8 +55,7 @@ void screenSetup()
   lcd.setCursor(1, 1);
   lcd.print("I am ARKANOID!");
 
-  // TODO
-  delay(1000);
+  delay(3000);
 
   lcd.clear();
 }
@@ -173,16 +176,25 @@ void playerShot()
 
     if (playerVertical == 0)
     {
-      clearEnemy0();
       enemyPosition0 = 0;
     }
     else if (playerVertical == 1)
     {
-      clearEnemy1();
       enemyPosition1 = 0;
     }
 
-    tone(BUZZER_PIN, 3500, 20);
+    tone(BUZZER_PIN, 6000, 150);
+
+    // Первые 4 ячейки служебные.
+    // Блокирующий. Scheduler - не работает с UNO. Но оно того стоит. Прерывания??? \oO/
+    for (byte i = 4; i < horizontal; i++)
+    {
+      lcd.setCursor(i, playerVertical);
+      lcd.print("-");
+      delay(70);
+      lcd.setCursor(i, playerVertical);
+      lcd.print(" ");
+    }
   }
 }
 
@@ -194,6 +206,8 @@ void playerBuyHealth()
   {
     changeScore(-healthCost);
     changeHealth(+1);
+
+    tone(BUZZER_PIN, 3500, 20);
   }
 }
 
@@ -237,7 +251,7 @@ void drawPlayer()
   lcd.print(">");
 }
 
-// Очищает текущие ячейки, рисует в следующих. 
+// Очищает текущие ячейки, рисует в следующих.
 void clearEnemies()
 {
   clearEnemy0();
@@ -246,22 +260,22 @@ void clearEnemies()
 
 void clearEnemy0()
 {
-  lcd.setCursor(19 - enemyPosition0, 0);
+  lcd.setCursor(enemyShift0 + enemyCursorShift - enemyPosition0, 0);
   lcd.print(" ");
 }
 
 void clearEnemy1()
 {
-  lcd.setCursor(19 - enemyPosition1, 1);
+  lcd.setCursor(enemyShift1 + enemyCursorShift - enemyPosition1, 1);
   lcd.print(" ");
 }
 
 void drawEnemy(String ch)
 {
-  lcd.setCursor(18 - enemyPosition0, 0);
+  lcd.setCursor(enemyShift0 + enemyDrawShift - enemyPosition0, 0);
   lcd.print(ch);
 
-  lcd.setCursor(18 - enemyPosition1, 1);
+  lcd.setCursor(enemyShift1 + enemyDrawShift - enemyPosition1, 1);
   lcd.print(ch);
 }
 
