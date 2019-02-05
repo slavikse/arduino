@@ -60,32 +60,12 @@ void setupStatusBar()
 
 void loop()
 {
-  clearEnemy();
-  drawEnemy("-");
-
-  nextPosition();
-
   playerShot();
   playerMove();
-}
 
-void clearEnemy()
-{
-  lcd.setCursor(18 - enemyPosition1, 1);
-  lcd.print(" ");
-}
-
-void drawEnemy(String ch)
-{
-  lcd.setCursor(17 - enemyPosition1, 1);
-  lcd.print(ch);
-}
-
-void nextPosition()
-{
-  delay(200);
-  // Слева экрана будет свободно 3 ячейки.
-  enemyPosition1 = (enemyPosition1 + 1) % 15;
+  clearEnemy();
+  drawEnemy("-");
+  enemyMove();
 }
 
 void playerShot()
@@ -112,16 +92,15 @@ void playerMove()
   {
     setPlayerPosition(0);
   }
+
+  clearPlayer();
+  drawPlayer();
 }
 
 void setPlayerPosition(byte position)
 {
   // Serial.print(playerVertical);
   playerVertical = position;
-
-  clearPlayer();
-  drawPlayer();
-
   tone(BUZZER_PIN, 2000, 20);
 }
 
@@ -138,4 +117,23 @@ void drawPlayer()
 {
   lcd.setCursor(3, playerVertical);
   lcd.print("E");
+}
+
+void clearEnemy()
+{
+  lcd.setCursor(18 - enemyPosition1, 1);
+  lcd.print(" ");
+}
+
+void drawEnemy(String ch)
+{
+  lcd.setCursor(17 - enemyPosition1, 1);
+  lcd.print(ch);
+}
+
+void enemyMove()
+{
+  delay(200);
+  // Слева экрана будет свободно 3 ячейки.
+  enemyPosition1 = (enemyPosition1 + 1) % 15;
 }
