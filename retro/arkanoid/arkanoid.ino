@@ -2,19 +2,36 @@
 
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
-byte currentStep = 0;
+const byte SHOT_BUTTON_PIN = 10;
+const byte BUZZER_PIN = 6;
+
+const byte PLAYER_TOP_PIN = 9;
+const byte PLAYER_BOTTOM_PIN = 8;
+
+// Размеры экрана.
+const byte horizontal = 16;
+const byte vertical = 2;
+
+// 0 - Внизу, 1 - Вверху.
+byte playerVertical = 0;
 byte score = 0;
 byte health = 3;
 
+// 0 - значение инвертируется на выводе.
+byte enemyPosition1 = 0;
+byte enemyShotPosition1 = 0;
+
 void setup()
 {
+  // Serial.begin(9600);
+
   screenSetup();
   setupStatusBar();
 }
 
 void screenSetup()
 {
-  lcd.begin(16, 2);
+  lcd.begin(horizontal, vertical);
 
   lcd.print("Hi man!");
   lcd.setCursor(0, 1);
@@ -43,27 +60,82 @@ void setupStatusBar()
 
 void loop()
 {
-  clearCharacter();
-  drawCharacter("-");
+  clearEnemy();
+  drawEnemy("-");
 
-  nextStep();
+  nextPosition();
+
+  playerShot();
+  playerMove();
 }
 
-void clearCharacter()
+void clearEnemy()
 {
-  lcd.setCursor(18 - currentStep, 1);
+  lcd.setCursor(18 - enemyPosition1, 1);
   lcd.print(" ");
 }
 
-void drawCharacter(String ch)
+void drawEnemy(String ch)
 {
-  lcd.setCursor(17 - currentStep, 1);
+  lcd.setCursor(17 - enemyPosition1, 1);
   lcd.print(ch);
 }
 
-void nextStep()
+void nextPosition()
 {
   delay(200);
   // Слева экрана будет свободно 3 ячейки.
-  currentStep = (currentStep + 1) % 15;
+  enemyPosition1 = (enemyPosition1 + 1) % 15;
+}
+
+void playerShot()
+{
+  bool keyUp = digitalRead(SHOT_BUTTON_PIN);
+
+  if (!keyUp)
+  {
+    tone(BUZZER_PIN, 3500, 20);
+  }
+}
+
+void playerMove()
+{
+  bool topKeyUp = digitalRead(PLAYER_TOP_PIN);
+  bool bottomKeyUp = digitalRead(PLAYER_BOTTOM_PIN);
+
+  if (!topKeyUp)
+  {
+    setPlayerPosition(1);
+  }
+
+  if (!bottomKeyUp)
+  {
+    setPlayerPosition(0);
+  }
+}
+
+void setPlayerPosition(byte position)
+{
+  // Serial.print(playerVertical);
+  playerVertical = position;
+
+  clearPlayer();
+  drawPlayer();
+
+  tone(BUZZER_PIN, 2000, 20);
+}
+
+void clearPlayer()
+{
+  for (byte i = 0; i < 2; i++)
+  {
+    lcd.setCursor(3, i);
+    lcd.print(" ");
+  }
+}
+
+void drawPlayer()
+{
+  lcd.setCursor(3, playerVertical);
+  lcd.print("E");
 }
