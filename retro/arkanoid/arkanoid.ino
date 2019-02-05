@@ -144,6 +144,8 @@ void changeHealth(byte num)
 void changeScore(byte num)
 {
   score += num;
+  Serial.print(num);
+  Serial.print(score);
 
   // Защита от переполнения.
   if (score >= 99)
@@ -191,7 +193,7 @@ void playerShot()
     {
       lcd.setCursor(i, playerVertical);
       lcd.print("-");
-      delay(70);
+      delay(80);
       lcd.setCursor(i, playerVertical);
       lcd.print(" ");
     }
