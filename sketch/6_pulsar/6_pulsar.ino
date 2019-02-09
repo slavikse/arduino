@@ -1,12 +1,14 @@
-#define CONTROL_PIN 9
+#define CONTROL_PIN 13
 
 int brightness = 0;
 
-void setup() {
+void setup()
+{
   pinMode(CONTROL_PIN, OUTPUT);
 }
 
-void loop() {
+void loop()
+{
   brightness = (brightness + 1) % 256;
   analogWrite(CONTROL_PIN, brightness);
 
